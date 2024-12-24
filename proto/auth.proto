@@ -19,7 +19,7 @@ message RegisterRequest {
 }
 
 message RegisterResponse {
-  string user_id = 2; // UUID пользователя
+  string user_id = 1; // UUID пользователя
 }
 
 message LoginRequest {
