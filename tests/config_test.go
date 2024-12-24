@@ -1,6 +1,7 @@
-package config
+package tests
 
 import (
+	"cyberball-auth/config"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -10,7 +11,7 @@ import (
 // Подготовка .env файла для теста
 func TestNewConfig(t *testing.T) {
 	// Загружаем конфигурацию
-	cfg, err := NewConfig()
+	cfg, err := config.NewConfig()
 
 	assert.NoError(t, err, "config error")
 	// Печатаем конфигурацию для отладки

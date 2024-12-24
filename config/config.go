@@ -56,7 +56,7 @@ func NewConfig() (*Config, error) {
 	// Создаем конфигурацию
 	cfg := &Config{}
 
-	err := cleanenv.ReadConfig("./config.yaml", cfg)
+	err := cleanenv.ReadConfig("../config/config.yaml", cfg)
 	if err != nil {
 		return nil, fmt.Errorf("config error: %w", err)
 	}
