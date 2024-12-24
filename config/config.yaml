@@ -1,0 +1,14 @@
+app:
+  name: "cyberball-auth" # Имя приложения
+  version: "0.0.1" # Версия приложения
+
+grpc:
+  port: 60051
+  timeout: 30
+
+logger:
+  level: 'debug'
+
+token:
+  accessTTL: "30m"
+  refreshTTL: "720h"
