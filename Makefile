@@ -8,3 +8,9 @@ proto-generate:
 
 generate-key:
 	go run cmd/generate-key/main.go
+
+start-grpc:
+	go run cmd/app/main.go
+
+start-grpc-dev:
+	go run cmd/app/main.go --dev

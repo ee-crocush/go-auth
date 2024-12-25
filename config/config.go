@@ -49,14 +49,14 @@ type (
 func NewConfig() (*Config, error) {
 
 	// Загружаем переменные окружения из .env файла
-	if err := godotenv.Load("../.env"); err != nil {
+	if err := godotenv.Load("./.env"); err != nil {
 		return nil, err
 	}
 
 	// Создаем конфигурацию
 	cfg := &Config{}
 
-	err := cleanenv.ReadConfig("../config/config.yaml", cfg)
+	err := cleanenv.ReadConfig("./config/config.yaml", cfg)
 	if err != nil {
 		return nil, fmt.Errorf("config error: %w", err)
 	}
