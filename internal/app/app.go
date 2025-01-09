@@ -2,43 +2,98 @@
 package app
 
 import (
+	"context"
 	"cyberball-auth/config"
-	pb "cyberball-auth/gen/auth"
-	authgrpc "cyberball-auth/internal/controller/grpc/auth"
+	"cyberball-auth/gen/auth"
+	"cyberball-auth/internal/adapter/database"
+	"cyberball-auth/internal/adapter/token"
+	"cyberball-auth/internal/controller/grpc/auth"
+	"cyberball-auth/internal/repo/blacklist"
+	"cyberball-auth/internal/repo/user"
+	"cyberball-auth/internal/usecase/auth"
 	"fmt"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/peer"
 	"log"
 	"net"
 )
 
 // Run - запускает приложение
 func Run(cfg *config.Config, devMode bool) {
-	// Создаем gRPC-сервер
-	grpcServer := grpc.NewServer()
-	// Создаем сервис Auth
-	authService := &authgrpc.AuthServer{}
-	// Регистрируем сервис Auth
-	pb.RegisterAuthServer(grpcServer, authService)
-	// Включаем рефлексию только в режиме разработки
-	if devMode {
-		reflection.Register(grpcServer)
-		log.Println("Development mode: gRPC reflection enabled")
-	} else {
-		log.Println("Production mode: gRPC reflection disabled")
+	// Инициализация дефолтного логгера
+	logger := log.Default()
+	// Подключение к базе данных
+	dbpool, err := database.New(context.Background(), *cfg)
+	if err != nil {
+		logger.Fatalf("Unable to create connection pool: %v", err)
 	}
+	defer dbpool.Close()
+	logger.Printf("Database connection established")
+
+	// Создаем репозитории
+	userRepo := user.NewRepository(dbpool)
+	blacklistRepo := blacklist.NewRepository(dbpool)
+
+	// Создаем сервис работы с токенами
+	tokenSvc, err := token.NewService(cfg.Token.Secret, cfg.Token.AccessTTL, cfg.Token.RefreshTTL)
+	if err != nil {
+		logger.Fatalf("Failed to initialize token service: %v", err)
+	}
+
+	// Создаем слой usecase
+	authUseCase := usecase.NewAuthUseCase(userRepo, blacklistRepo, tokenSvc)
+
+	// Создаем gRPC-сервер
+	grpcServer := grpc.NewServer(
+		grpc.StreamInterceptor(grpcLogStreamInterceptor),
+		grpc.UnaryInterceptor(grpcLogUnaryInterceptor),
+	)
+
+	// Создаем и регистрируем gRPC-сервис Auth
+	authController := grpcauth.NewAuthServer(authUseCase)
+	auth.RegisterAuthServer(grpcServer, authController)
 
 	// Слушаем порт gRPC
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPC.Port))
-
 	if err != nil {
-		log.Fatalf("Failed to listen +on port %d: %v", cfg.GRPC.Port, err)
+		logger.Fatalf("Failed to listen on port %d: %v", cfg.GRPC.Port, err)
 	}
 
-	log.Printf("Starting gRPC server on port %d\n", cfg.GRPC.Port)
-
+	logger.Printf("Starting gRPC server on port %d\n", cfg.GRPC.Port)
 	// Запускаем gRPC-сервер
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve gRPC server: %v", err)
+		logger.Fatalf("Failed to serve gRPC server: %v", err)
 	}
+}
+
+// Интерсепторы для логирования
+func grpcLogStreamInterceptor(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	logger := log.Default()
+	logger.Printf("gRPC Stream called: %s from %s", info.FullMethod, ss.Context().Value("peer").(*peer.Peer).Addr.String())
+	return handler(srv, ss)
+}
+
+func grpcLogUnaryInterceptor(
+	ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (interface{}, error) {
+	logger := log.Default()
+	peerInfo, _ := peer.FromContext(ctx)
+	//if !ok {
+	//	logger.Printf("gRPC Unary called: %s from UNKNOWN", info.FullMethod)
+	//} else {
+	//	//logger.Printf("gRPC Unary called: %s from %s", info.FullMethod, peerInfo.Addr.String())
+	//}
+
+	resp, err := handler(ctx, req)
+
+	if err != nil {
+		logger.Printf("gRPC Unary response error: %s, method: %s, error: %v", peerInfo.Addr.String(), info.FullMethod, err)
+	} else {
+		logger.Printf("gRPC Unary response: %s, method: %s, response: %v", peerInfo.Addr.String(), info.FullMethod, resp)
+	}
+
+	return resp, err
 }

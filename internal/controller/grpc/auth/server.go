@@ -3,7 +3,8 @@ package grpcauth
 import (
 	"context"
 	pb "cyberball-auth/gen/auth"
-	"fmt"
+
+	"cyberball-auth/internal/usecase/auth"
 )
 
 var _ pb.AuthServer = (*AuthServer)(nil)
@@ -11,66 +12,58 @@ var _ pb.AuthServer = (*AuthServer)(nil)
 // AuthServer - структура для обработки RPC-методов, реализующая интерфейс pb.AuthServer
 type AuthServer struct {
 	pb.UnimplementedAuthServer
+	auth usecase.AuthUseCase
+}
+
+// NewAuthServer - конструктор для AuthServer
+func NewAuthServer(auth usecase.AuthUseCase) *AuthServer {
+	return &AuthServer{auth: auth}
 }
 
 // Register - регистрация нового пользователя
-func (h *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	// TODO - тут будет регистрация нового пользователя (не логика)
-	//userID, err := h.auth.Register(req.Email, req.Password)
-	//
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	// Для примера пока просто выводим в консоль, что все работает
-	fmt.Printf("Register Request - Email: %s, Password: %s\n", req.Email, req.Password)
-	return &pb.RegisterResponse{UserId: "123"}, nil
+func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+	userID, err := s.auth.Register(req.Email, req.Password)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.RegisterResponse{UserId: userID}, nil
 }
 
 // Login - авторизация пользователя
-func (h *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	// TODO - тут будет авторизация пользователя (не логика)
-	//accessToken, refreshToken, err := h.auth.Login(req.Email, req.Password)
-	//if err != nil {
-	//	return nil, err
-	//}
-	// Для примера пока просто выводим в консоль, что все работает
-	fmt.Printf("Login Request - Email: %s, Password: %s\n", req.Email, req.Password)
-	return &pb.LoginResponse{AccessToken: "123", RefreshToken: "456"}, nil
+func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	accessToken, refreshToken, err := s.auth.Login(req.Email, req.Password)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.LoginResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
 // RefreshToken - обновление токена
-func (h *AuthServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
-	// TODO - тут будет обновление токена (не логика)
-	//accessToken, err := h.auth.RefreshToken(req.RefreshToken)
-	//if err != nil {
-	//	return nil, err
-	//}
-	// Для примера пока просто выводим в консоль, что все работает
-	fmt.Printf("RefreshToken Request - RefreshToken: %s\n", req.RefreshToken)
-	return &pb.RefreshTokenResponse{AccessToken: "123"}, nil
+func (s *AuthServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
+	accessToken, err := s.auth.RefreshToken(req.RefreshToken)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.RefreshTokenResponse{AccessToken: accessToken}, nil
 }
 
 // ValidateToken - проверка токена
-func (h *AuthServer) ValidateToken(ctx context.Context, req *pb.ValidateTokenRequest) (*pb.ValidateTokenResponse, error) {
-	// TODO - тут будет проверка токена (не логика)
-	//valid, err := h.auth.ValidateToken(req.AccessToken)
-	//if err != nil {
-	//	return nil, err
-	//}
-	// Для примера пока просто выводим в консоль, что все работает
-	fmt.Printf("ValidateToken Request - AccessToken: %s\n", req.AccessToken)
-	return &pb.ValidateTokenResponse{Valid: true}, nil
+func (s *AuthServer) ValidateToken(ctx context.Context, req *pb.ValidateTokenRequest) (*pb.ValidateTokenResponse, error) {
+	valid, err := s.auth.ValidateToken(req.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.ValidateTokenResponse{Valid: valid}, nil
 }
 
 // Logout - выход из системы
-func (h *AuthServer) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
-	// TODO - тут будет выход из системы (не логика)
-	//err := h.auth.Logout(req.AccessToken)
-	//if err != nil {
-	//	return nil, err
-	//}
-	// Для примера пока просто выводим в консоль, что все работает
-	fmt.Printf("Logout Request - AccessToken: %s\n", req.AccessToken)
+func (s *AuthServer) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+	err := s.auth.Logout(req.AccessToken)
+	if err != nil {
+		return nil, err
+	}
 	return &pb.LogoutResponse{}, nil
 }

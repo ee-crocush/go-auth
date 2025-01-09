@@ -12,3 +12,6 @@ logger:
 token:
   accessTTL: "30m"
   refreshTTL: "720h"
+
+migrations:
+  path: "./migrations"
