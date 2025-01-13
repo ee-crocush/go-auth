@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var _ Service = (*service)(nil)
+var _ JWTToken = (*jwtToken)(nil)
 
 // Ошибки токенов
 var (
@@ -18,8 +18,8 @@ var (
 	ErrRefreshTokenExpired = errors.New("refresh token expired")
 )
 
-// Service - интерфейс для работы с токенами
-type Service interface {
+// JWTToken - интерфейс для работы с токенами
+type JWTToken interface {
 	// GenerateAccessToken - генерация access токена
 	GenerateAccessToken(user *entity.User) (string, error)
 	// GenerateRefreshToken - генерация refresh токена
@@ -31,18 +31,18 @@ type Service interface {
 }
 
 // service - реализация интерфейса Service
-type service struct {
+type jwtToken struct {
 	secret     string
 	accessTTL  time.Duration
 	refreshTTL time.Duration
 }
 
-// NewService - конструктор создает новый экземпляр Service
-func NewService(secret string, accessTTL, refreshTTL time.Duration) (Service, error) {
+// New - конструктор создает новый экземпляр Service
+func New(secret string, accessTTL, refreshTTL time.Duration) (JWTToken, error) {
 	if secret == "" {
 		return nil, ErrMissingSecret
 	}
-	return &service{
+	return &jwtToken{
 		secret:     secret,
 		accessTTL:  accessTTL,
 		refreshTTL: refreshTTL,
@@ -50,17 +50,17 @@ func NewService(secret string, accessTTL, refreshTTL time.Duration) (Service, er
 }
 
 // GenerateAccessToken - генерация access токена
-func (s *service) GenerateAccessToken(user *entity.User) (string, error) {
+func (s *jwtToken) GenerateAccessToken(user *entity.User) (string, error) {
 	return s.generateToken(user.ID, s.accessTTL)
 }
 
 // GenerateRefreshToken - генерация refresh токена
-func (s *service) GenerateRefreshToken(user *entity.User) (string, error) {
+func (s *jwtToken) GenerateRefreshToken(user *entity.User) (string, error) {
 	return s.generateToken(user.ID, s.refreshTTL)
 }
 
 // ValidateToken - валидация токена
-func (s *service) ValidateToken(token string) (bool, error) {
+func (s *jwtToken) ValidateToken(token string) (bool, error) {
 	claims, err := s.parseToken(token)
 	if err != nil {
 		return false, err
@@ -75,7 +75,7 @@ func (s *service) ValidateToken(token string) (bool, error) {
 }
 
 // RefreshAccessToken - обновление access токена
-func (s *service) RefreshAccessToken(refreshToken string) (string, error) {
+func (s *jwtToken) RefreshAccessToken(refreshToken string) (string, error) {
 	claims, err := s.parseToken(refreshToken)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse refresh token: %w", err)
@@ -91,7 +91,7 @@ func (s *service) RefreshAccessToken(refreshToken string) (string, error) {
 }
 
 // generateToken - вспомогательный метод для генерации токена
-func (s *service) generateToken(userID string, ttl time.Duration) (string, error) {
+func (s *jwtToken) generateToken(userID string, ttl time.Duration) (string, error) {
 	claims := &jwt.RegisteredClaims{
 		Issuer:    userID,
 		Subject:   userID,
@@ -102,7 +102,7 @@ func (s *service) generateToken(userID string, ttl time.Duration) (string, error
 }
 
 // parseToken - парсинг токена и валидация
-func (s *service) parseToken(tokenString string) (*jwt.RegisteredClaims, error) {
+func (s *jwtToken) parseToken(tokenString string) (*jwt.RegisteredClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(t *jwt.Token) (interface{}, error) {
 		return []byte(s.secret), nil
 	})

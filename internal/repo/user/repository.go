@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"cyberball-auth/internal/entity"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -30,15 +29,13 @@ func NewRepository(db *pgxpool.Pool) Repository {
 }
 
 func (r *repository) CreateUser(ctx context.Context, user *entity.User) (string, error) {
-	userID := uuid.New().String()
-
 	query := `INSERT INTO users (id, email, password) VALUES ($1, $2, $3)`
-	_, err := r.db.Exec(ctx, query, userID, user.Email, user.Password)
+	_, err := r.db.Exec(ctx, query, user.ID, user.Email, user.Password)
 	if err != nil {
 		return "", err
 	}
 
-	return userID, nil
+	return user.ID, nil
 }
 
 func (r *repository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {

@@ -35,7 +35,7 @@ func Run(cfg *config.Config, devMode bool) {
 	blacklistRepo := blacklist.NewRepository(dbpool)
 
 	// Создаем сервис работы с токенами
-	tokenSvc, err := token.NewService(cfg.Token.Secret, cfg.Token.AccessTTL, cfg.Token.RefreshTTL)
+	tokenSvc, err := token.New(cfg.Token.Secret, cfg.Token.AccessTTL, cfg.Token.RefreshTTL)
 	if err != nil {
 		logger.Fatalf("Failed to initialize token service: %v", err)
 	}

@@ -3,8 +3,8 @@ package grpcauth
 import (
 	"context"
 	pb "cyberball-auth/gen/auth"
-
 	"cyberball-auth/internal/usecase/auth"
+	"cyberball-auth/pkg/validator"
 )
 
 var _ pb.AuthServer = (*AuthServer)(nil)
@@ -15,6 +15,12 @@ type AuthServer struct {
 	auth usecase.AuthUseCase
 }
 
+// RequestValidation - структура для валидации запроса
+type RequestValidation struct {
+	Email    string `validate:"required,email"`
+	Password string `validate:"required,min=6,max=128"`
+}
+
 // NewAuthServer - конструктор для AuthServer
 func NewAuthServer(auth usecase.AuthUseCase) *AuthServer {
 	return &AuthServer{auth: auth}
@@ -22,6 +28,15 @@ func NewAuthServer(auth usecase.AuthUseCase) *AuthServer {
 
 // Register - регистрация нового пользователя
 func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+	// Подготовка структуры для валидации
+	validateReq := &RequestValidation{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+	if err := validator.ValidateRequest(validateReq); err != nil {
+		return nil, err
+	}
+
 	userID, err := s.auth.Register(req.Email, req.Password)
 	if err != nil {
 		return nil, err
@@ -31,6 +46,15 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 
 // Login - авторизация пользователя
 func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	// Подготовка структуры для валидации
+	validateReq := &RequestValidation{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+	if err := validator.ValidateRequest(validateReq); err != nil {
+		return nil, err
+	}
+
 	accessToken, refreshToken, err := s.auth.Login(req.Email, req.Password)
 	if err != nil {
 		return nil, err

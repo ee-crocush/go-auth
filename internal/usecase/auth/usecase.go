@@ -8,6 +8,7 @@ import (
 	"cyberball-auth/internal/repo/user"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
@@ -17,6 +18,7 @@ var (
 	ErrExistingUser       = errors.New("email already in use")
 	ErrUserNotActive      = errors.New("user account is not active")
 	ErrBlackListed        = errors.New("access token is blacklisted")
+	ErrMinLengthPswd      = errors.New("password length must be between 6 and 128 characters")
 )
 
 var _ AuthUseCase = (*auth)(nil)
@@ -39,11 +41,11 @@ type AuthUseCase interface {
 type auth struct {
 	userRepo     user.Repository
 	blacklist    blacklist.Repository
-	tokenService token.Service
+	tokenService token.JWTToken
 }
 
 // NewAuthUseCase - конструктор для auth
-func NewAuthUseCase(userRepo user.Repository, blacklist blacklist.Repository, tokenSvc token.Service) AuthUseCase {
+func NewAuthUseCase(userRepo user.Repository, blacklist blacklist.Repository, tokenSvc token.JWTToken) AuthUseCase {
 	return &auth{
 		userRepo:     userRepo,
 		blacklist:    blacklist,
@@ -52,7 +54,11 @@ func NewAuthUseCase(userRepo user.Repository, blacklist blacklist.Repository, to
 }
 
 // Register - регистрация нового пользователя
-func (uc *auth) Register(email string, password string) (string, error) {
+func (uc *auth) Register(email string, password string) (string, error) { // Проверка сложности и длины пароля
+	if len(password) < 6 || len(password) > 128 {
+		return "", ErrMinLengthPswd
+	}
+
 	// Проверяем, что пользователя с таким email не существует
 	existingUser, err := uc.userRepo.GetUserByEmail(context.Background(), email)
 	if err == nil && existingUser != nil {
@@ -63,9 +69,11 @@ func (uc *auth) Register(email string, password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
+	// Генерация ID пользователя
+	userID := uuid.New().String()
 	// Создаем нового пользователя
 	newUser := &entity.User{
+		ID:        userID,
 		Email:     email,
 		Password:  string(hashedPassword),
 		CreatedAt: time.Now(),
