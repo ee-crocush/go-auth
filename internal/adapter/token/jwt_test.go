@@ -1,9 +1,9 @@
 package token
 
 import (
-	"cyberball-auth/internal/entity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go-auth/internal/entity"
 	"testing"
 	"time"
 )

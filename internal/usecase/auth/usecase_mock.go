@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"context"
-	"cyberball-auth/internal/entity"
 	"github.com/stretchr/testify/mock"
+	"go-auth/internal/entity"
 )
 
 type MockUserRepository struct {

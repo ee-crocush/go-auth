@@ -1,9 +1,9 @@
 package main
 
 import (
-	"cyberball-auth/config"
-	app "cyberball-auth/internal/app"
 	"flag"
+	"go-auth/config"
+	app "go-auth/internal/app"
 	"log"
 )
 

@@ -1,10 +1,10 @@
 package usecase
 
 import (
-	"cyberball-auth/internal/entity"
 	"errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go-auth/internal/entity"
 	"golang.org/x/crypto/bcrypt"
 	"testing"
 )

@@ -2,9 +2,9 @@ package database
 
 import (
 	"context"
-	"cyberball-auth/config"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go-auth/config"
 	"time"
 )
 

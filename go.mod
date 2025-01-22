@@ -1,4 +1,4 @@
-module cyberball-auth
+module go-auth
 
 go 1.23.3
 

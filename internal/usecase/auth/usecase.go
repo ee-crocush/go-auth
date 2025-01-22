@@ -2,13 +2,13 @@ package usecase
 
 import (
 	"context"
-	"cyberball-auth/internal/adapter/token"
-	"cyberball-auth/internal/entity"
-	"cyberball-auth/internal/repo/blacklist"
-	"cyberball-auth/internal/repo/user"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"go-auth/internal/adapter/token"
+	"go-auth/internal/entity"
+	"go-auth/internal/repo/blacklist"
+	"go-auth/internal/repo/user"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )

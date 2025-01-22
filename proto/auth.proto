@@ -3,7 +3,7 @@ syntax = "proto3";
 package auth;
 
 // Указываем пакет для Go-кода
-option go_package = "cyberball-auth/gen/auth";
+option go_package = "go-auth/gen/auth";
 
 service Auth {
   rpc Register(RegisterRequest) returns (RegisterResponse);

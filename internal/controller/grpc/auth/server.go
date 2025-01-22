@@ -2,9 +2,9 @@ package grpcauth
 
 import (
 	"context"
-	pb "cyberball-auth/gen/auth"
-	"cyberball-auth/internal/usecase/auth"
-	"cyberball-auth/pkg/validator"
+	pb "go-auth/gen/auth"
+	"go-auth/internal/usecase/auth"
+	"go-auth/pkg/validator"
 )
 
 var _ pb.AuthServer = (*AuthServer)(nil)

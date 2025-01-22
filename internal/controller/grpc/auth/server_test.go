@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	pb "cyberball-auth/gen/auth"
 	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	pb "go-auth/gen/auth"
 )
 
 func TestRegister(t *testing.T) {

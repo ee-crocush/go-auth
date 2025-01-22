@@ -1,9 +1,9 @@
 package main
 
 import (
-	"cyberball-auth/config"
 	"errors"
 	"fmt"
+	"go-auth/config"
 	"log"
 	"os"
 

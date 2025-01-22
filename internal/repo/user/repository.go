@@ -2,8 +2,8 @@ package user
 
 import (
 	"context"
-	"cyberball-auth/internal/entity"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go-auth/internal/entity"
 )
 
 // Убедимся, что repository реализует интерфейс Repository

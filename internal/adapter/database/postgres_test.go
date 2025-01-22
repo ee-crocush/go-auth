@@ -2,9 +2,9 @@ package database
 
 import (
 	"context"
-	"cyberball-auth/config"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
+	"go-auth/config"
 	"os"
 	"testing"
 	"time"

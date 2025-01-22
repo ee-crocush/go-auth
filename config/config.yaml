@@ -1,5 +1,5 @@
 app:
-  name: "cyberball-auth" # Имя приложения
+  name: "go-auth" # Имя приложения
   version: "0.0.1" # Версия приложения
 
 grpc:

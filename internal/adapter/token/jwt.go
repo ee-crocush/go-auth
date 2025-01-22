@@ -1,10 +1,10 @@
 package token
 
 import (
-	"cyberball-auth/internal/entity"
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"go-auth/internal/entity"
 	"time"
 )
 
