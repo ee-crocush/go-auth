@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go-auth
+    environment:
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_DBNAME: ${PG_DBNAME}
+      TOKEN_SECRET: ${TOKEN_SECRET}
+      DB_MAX_CONNS: ${DB_MAX_CONNS}
+      DB_CONN_TIMEOUT: ${DB_CONN_TIMEOUT}
+      MIGRATIONS_PATH: /app/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/app/migrations
+      - ./config:/app/config
+    ports:
+      - "60051:60051"
+    command: >
+      sh -c "
+        /app/migrate up &&
+        /app/go-auth
+      "
+#    healthcheck:
+#      test: ["CMD-SHELL", "curl -f http://localhost:60051/health || exit 1"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+
+volumes:
+  postgres_data:

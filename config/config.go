@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/joho/godotenv"
 	"log"
 	"time"
 )
@@ -78,20 +77,15 @@ func (p PGConfig) MigrationsURL() string {
 
 // NewConfig - конструктор для создания Config
 func NewConfig() (*Config, error) {
-	// Загружаем переменные окружения из .env файла
-	if err := godotenv.Load("./.env"); err != nil {
-		return nil, err
-	}
-
 	// Создаем конфигурацию
 	cfg := &Config{}
 
-	err := cleanenv.ReadConfig("./config/config.yaml", cfg)
-	if err != nil {
-		return nil, fmt.Errorf("config error: %w", err)
+	// Загружаем конфигурацию с использованием cleanenv
+	if err := cleanenv.ReadConfig("./config/config.yaml", cfg); err != nil {
+		log.Println("Error loading environment variables:", err)
+		return nil, err
 	}
 
-	// Загружаем конфигурацию с использованием cleanenv
 	if err := cleanenv.ReadEnv(cfg); err != nil {
 		log.Println("Error loading environment variables:", err)
 		return nil, err
